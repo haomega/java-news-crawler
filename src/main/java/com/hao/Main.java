@@ -13,61 +13,38 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.sql.*;
 import java.util.List;
-import java.util.Set;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        List<String> linkPool = new ArrayList<>();
-        linkPool.add("https://news.sina.cn/");
-        Set<String> processedLinks = new HashSet<>();
-
-        while (true) {
-            if (linkPool.size() == 0) {
-                break;
-            }
-            String link = linkPool.remove(linkPool.size() - 1);
-
+    public static void main(String[] args) throws IOException, SQLException {
+        CrawlerDao crawlerJdbcDao = new CrawlerJdbcDao();
+        String link;
+        while ((link = crawlerJdbcDao.getToBeProcessedLinkAndRemove()) != null) {
             //判断link是否被处理过
-            if (processedLinks.contains(link)) {
+            if (crawlerJdbcDao.isLinkProcessed(link)) {
                 continue;
             }
-
             //是否是我们感兴趣的link
             if (isInserestedLink(link)) {
                 System.out.println("link: " + link);
                 Document doc = httpGetAndParseToDoc(link);
                 // 将页面上所有的<a>连接放入pool中
                 List<Element> aTags = doc.select("a");
-                addLinkToPool(linkPool, aTags);
-
+                crawlerJdbcDao.storeLinkToBeProcess(aTags);
                 if (isNewsPage(doc)) {
-                    System.out.println(doc.selectFirst("h1").text());
+                    crawlerJdbcDao.storeNewToDatabase(doc);
                 }
-                processedLinks.add(link);
-            }
-
-        }
-    }
-
-    private static void addLinkToPool(List<String> linkPool, List<Element> aTags) {
-        for (Element e : aTags) {
-            String href = e.attr("href");
-            if (href.startsWith("/") || href.startsWith("#") || href.isEmpty() || href.contains("javascript")) {
-                continue;
-            }
-            if (href.contains("news.sina")) {
-                linkPool.add(href);
+                crawlerJdbcDao.addLintToProcessed(link);
             }
         }
     }
+
 
     private static Document httpGetAndParseToDoc(String link) throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(link);
-        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+        try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
             System.out.println(response.getStatusLine());
             HttpEntity entity = response.getEntity();
             return Jsoup.parse(IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8));
@@ -82,8 +59,6 @@ public class Main {
 
     private static boolean isInserestedLink(String link) {
         return isSinaNewsPage(link) && isNotPassportLink(link) && isNotShtml(link);
-
-
     }
 
     private static boolean isNotShtml(String link) {
