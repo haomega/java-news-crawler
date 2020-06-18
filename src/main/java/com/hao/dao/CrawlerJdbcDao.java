@@ -1,4 +1,4 @@
-package com.hao;
+package com.hao.dao;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,8 +20,8 @@ public class CrawlerJdbcDao implements CrawlerDao{
         }
     }
 
-    public void addLintToProcessed(String link) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("delete from LINK_ALREADY_PROCESSED where link = ?");
+    public void addLinkToProcessed(String link) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("insert into LINK_ALREADY_PROCESSED (LINK) values (?)");
         preparedStatement.setString(1, link);
         preparedStatement.executeUpdate();
     }
