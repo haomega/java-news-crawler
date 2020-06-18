@@ -1,5 +1,7 @@
 package com.hao;
 
+import com.hao.dao.CrawlerDao;
+import com.hao.dao.CrawlerMybatisDao;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,7 +20,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException, SQLException {
-        CrawlerDao crawlerJdbcDao = new CrawlerJdbcDao();
+        CrawlerDao crawlerJdbcDao = new CrawlerMybatisDao();
         String link;
         while ((link = crawlerJdbcDao.getToBeProcessedLinkAndRemove()) != null) {
             //判断link是否被处理过
@@ -35,7 +37,7 @@ public class Main {
                 if (isNewsPage(doc)) {
                     crawlerJdbcDao.storeNewToDatabase(doc);
                 }
-                crawlerJdbcDao.addLintToProcessed(link);
+                crawlerJdbcDao.addLinkToProcessed(link);
             }
         }
     }
