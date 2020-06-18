@@ -51,7 +51,7 @@ public class CrawlerMybatisDao implements CrawlerDao {
     }
 
     @Override
-    public String getToBeProcessedLinkAndRemove() {
+    public synchronized String getToBeProcessedLinkAndRemove() {
         try (SqlSession session = sessionFactory.openSession(true)) {
             String link = session.selectOne("com.hao.CrawlerMapper.selectOneLink");
             if (link != null) {
