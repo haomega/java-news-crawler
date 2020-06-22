@@ -1,7 +1,6 @@
 package com.hao;
 
 import com.hao.dao.CrawlerDao;
-import com.hao.dao.CrawlerMybatisDao;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -19,7 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Crawler extends Thread {
-    private CrawlerDao crawlerDao;
+    private final CrawlerDao crawlerDao;
 
     public Crawler(CrawlerDao crawlerDao) {
         this.crawlerDao = crawlerDao;
@@ -28,9 +27,9 @@ public class Crawler extends Thread {
     public void run() {
         String link;
         try {
-            while ((link = crawlerDao.getToBeProcessedLinkAndRemove()) != null) {
+            while ((link = crawlerDao.getAndRemoveToBeProcessedLink()) != null) {
                 //判断link是否被处理过
-                if (crawlerDao.isLinkProcessed(link)) {
+                if (crawlerDao.isLinkAlreadyProcessed(link)) {
                     continue;
                 }
                 //是否是我们感兴趣的link
@@ -39,11 +38,11 @@ public class Crawler extends Thread {
                     Document doc = httpGetAndParseToDoc(link);
                     // 将页面上所有的<a>连接放入pool中
                     List<Element> aTags = doc.select("a");
-                    crawlerDao.storeLinkToBeProcess(aTags);
+                    crawlerDao.addATagLinkToBeProcessed(doc);
                     if (isNewsPage(doc)) {
-                        crawlerDao.storeNewToDatabase(doc);
+                        crawlerDao.storeNews(doc);
                     }
-                    crawlerDao.addLinkToProcessed(link);
+                    crawlerDao.addLinkAlreadyProcessed(link);
                 }
             }
         } catch (SQLException | IOException throwables) {

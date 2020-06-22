@@ -6,11 +6,10 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.sql.SQLException;
 
 public class CrawlerMybatisDao implements CrawlerDao {
 
@@ -26,14 +25,21 @@ public class CrawlerMybatisDao implements CrawlerDao {
     }
 
     @Override
-    public void addLinkToProcessed(String link) {
+    public void addLinkAlreadyProcessed(String link) throws SQLException {
         try (SqlSession session = sessionFactory.openSession(true)) {
-            session.insert("com.hao.CrawlerMapper.insertLinkToProcessed", link);
+            session.insert("com.hao.CrawlerMapper.insertLinkAlreadyProcessed", link);
         }
     }
 
     @Override
-    public void storeNewToDatabase(Document doc) {
+    public void addLinkToBeProcessed(String link) throws SQLException {
+        try (SqlSession session = sessionFactory.openSession(true)) {
+            session.insert("com.hao.CrawlerMapper.insertLinkToBeProcessed", link);
+        }
+    }
+
+    @Override
+    public void storeNews(Document doc) {
         String title = doc.select("h1").text();
         String content = doc.select(".art_content").text();
         News news = new News(title, content);
@@ -43,15 +49,15 @@ public class CrawlerMybatisDao implements CrawlerDao {
     }
 
     @Override
-    public boolean isLinkProcessed(String link) {
+    public boolean isLinkAlreadyProcessed(String link) {
         try (SqlSession session = sessionFactory.openSession(true)) {
-            int count = session.selectOne("com.hao.CrawlerMapper.isLinkProcessed", link);
+            int count = session.selectOne("com.hao.CrawlerMapper.selectCountFromAlready", link);
             return count != 0;
         }
     }
 
     @Override
-    public synchronized String getToBeProcessedLinkAndRemove() {
+    public synchronized String getAndRemoveToBeProcessedLink() {
         try (SqlSession session = sessionFactory.openSession(true)) {
             String link = session.selectOne("com.hao.CrawlerMapper.selectOneLink");
             if (link != null) {
@@ -61,15 +67,4 @@ public class CrawlerMybatisDao implements CrawlerDao {
         }
     }
 
-    @Override
-    public void storeLinkToBeProcess(List<Element> aTags) {
-        for (Element e : aTags) {
-            String href = e.attr("href");
-            if (!href.startsWith("/") && !href.startsWith("#") && !href.isEmpty() && !href.contains("javascript")) {
-                if (href.contains("news.sina")) {
-                    addLinkToProcessed(href);
-                }
-            }
-        }
-    }
 }

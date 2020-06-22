@@ -6,23 +6,25 @@
     <select id="selectOneLink" resultType="String">
     select link from LINK_TOBE_PROCESSED limit 1
     </select>
-    <insert id="insertLinkToProcessed" parameterType="String">
+    <insert id="insertLinkToBeProcessed" parameterType="String">
         insert into LINK_TOBE_PROCESSED (LINK) values (#{link})
     </insert>
 
-    <insert id="storeNews" parameterType="com.hao.News">
-        insert into NEWS (title, content, created_at, updated_at)
-         values (#{title}, #{content}, now(), now())
-
+    <insert id="insertLinkAlreadyProcessed" parameterType="String">
+        insert into LINK_ALREADY_PROCESSED (LINK) values (#{link})
     </insert>
-
-    <select id="isLinkProcessed" parameterType="String" resultType="int">
-        select count(1) from LINK_ALREADY_PROCESSED where link = #{link}
-    </select>
 
     <delete id="deleteToBeProcessedLink" parameterType="String">
         delete from LINK_TOBE_PROCESSED where link = #{link}
     </delete>
 
+    <insert id="storeNews" parameterType="com.hao.News">
+        insert into NEWS (title, content, created_at, updated_at)
+         values (#{title}, #{content}, now(), now())
+    </insert>
+
+    <select id="selectCountFromAlready" parameterType="String" resultType="int">
+        select count(1) from LINK_ALREADY_PROCESSED where link = #{link}
+    </select>
 
 </mapper>
