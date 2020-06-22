@@ -9,7 +9,8 @@ public class News {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public News(String title, String content, Instant createdAt, Instant updatedAt) {
+    public News(Integer id, String title, String content, Instant createdAt, Instant updatedAt) {
+        this.id = id;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;

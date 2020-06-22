@@ -27,4 +27,8 @@
         select count(1) from LINK_ALREADY_PROCESSED where link = #{link}
     </select>
 
+    <select id="allNews" resultType="com.hao.News">
+        select * from NEWS
+    </select>
+
 </mapper>
