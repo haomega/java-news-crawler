@@ -42,8 +42,8 @@ public class Crawler extends Thread {
                     if (isNewsPage(doc)) {
                         crawlerDao.storeNews(doc);
                     }
-                    crawlerDao.addLinkAlreadyProcessed(link);
                 }
+                crawlerDao.addLinkAlreadyProcessed(link);
             }
         } catch (SQLException | IOException throwables) {
             throw new RuntimeException(throwables);
