@@ -22,11 +22,10 @@ public class SearchUseCommand {
     }
 
     private static void search(String searchText) throws IOException {
-        try(RestHighLevelClient client = new RestHighLevelClient(
+        try (RestHighLevelClient client = new RestHighLevelClient(
                 RestClient.builder(
                         new HttpHost("localhost", 9200, "http")
-                )))
-        {
+                ))) {
             SearchRequest searchRequest = new SearchRequest();
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             searchSourceBuilder.query(QueryBuilders.multiMatchQuery(searchText, "title", "content"));
